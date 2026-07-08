@@ -53,9 +53,6 @@ function randNormal(rng) {
   return sum - 6;
 }
 
-function randomSixDigits() {
-  return String(Math.floor(100000 + Math.random() * 900000));
-}
 
 function normalizeSeedText(text) {
   return String(text).replace(/\D/g, "").slice(0, 6);
@@ -457,26 +454,9 @@ function Stat({ label, value, className = "" }) {
   );
 }
 
-function RangeFocus({ label, items, activeId }) {
-  return (
-    <div className="field">
-      <div className="label">{label}</div>
-      <div className={`segmented ${items.length === 2 && label.startsWith("サンプル") ? "sample" : "noise"}`}>
-        {items.map((item) => (
-          <div key={item.id} className={`range-option${activeId === item.id ? " active" : ""}`} aria-current={activeId === item.id ? "true" : "false"}>
-            {item.label}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const [currentCode, setCurrentCode] = useState("314159");
   const [degree, setDegree] = useState(5);
-  const [isTrueFunctionVisible, setIsTrueFunctionVisible] = useState(true);
-  const [areRangeControlsVisible, setAreRangeControlsVisible] = useState(true);
 
   const normalizedCode = normalizeSeedText(currentCode);
   const isValidCode = /^\d{6}$/.test(normalizedCode);
@@ -505,23 +485,6 @@ export default function App() {
         ? "計算が不安定になりました。別のコードまたは次数を試してください。"
         : "";
 
-  const trueFunctionLines = [];
-  if (current && isTrueFunctionVisible) {
-    if (current.trueFn.discontinuous && current.trueFn.segments) {
-      for (const [index, segment] of current.trueFn.segments.entries()) {
-        trueFunctionLines.push(
-          <polyline
-            key={`true-${index}`}
-            points={pathFromFunction(segment.f, 90, segment.left, segment.right)}
-            className="true-line"
-          />,
-        );
-      }
-    } else {
-      trueFunctionLines.push(<polyline key="true" points={pathFromFunction(current.trueFn.f)} className="true-line" />);
-    }
-  }
-
   const handleSeedChange = (event) => {
     setCurrentCode(normalizeSeedText(event.target.value));
   };
@@ -549,7 +512,6 @@ export default function App() {
         <section className="card plot-card">
           <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="多項式モデルの当てはめグラフ">
             <AxisAndGrid />
-            {trueFunctionLines}
             {current?.train.map((point, index) => (
               <circle key={`train-${index}`} cx={xToSvg(point.x)} cy={yToSvg(point.y)} r="4.1" className="train-point" />
             ))}
@@ -564,27 +526,6 @@ export default function App() {
 
         <aside className="side">
           <section className="card panel">
-            <div className="button-row">
-              <button type="button" className="subtle-button" onClick={() => setAreRangeControlsVisible((v) => !v)}>
-                {areRangeControlsVisible ? "範囲設定を非表示" : "範囲設定を表示"}
-              </button>
-              <button type="button" className="subtle-button" onClick={() => setIsTrueFunctionVisible((v) => !v)}>
-                {isTrueFunctionVisible ? "真の関数を非表示" : "真の関数を表示"}
-              </button>
-            </div>
-
-            {areRangeControlsVisible && (
-              <div>
-                <RangeFocus label="サンプルサイズ範囲（学習＋テスト）" items={sampleBands} activeId={current?.sampleBand} />
-                <RangeFocus label="ノイズ標準偏差の範囲" items={noiseBands} activeId={current?.noiseBand} />
-
-                <div className="field">
-                  <div className="label">真の関数の式</div>
-                  <div className="formula-monitor">{current?.trueFn.expression || "—"}</div>
-                </div>
-              </div>
-            )}
-
             <div className="field">
               <label htmlFor="seedInput">6桁コード</label>
               <input
@@ -614,12 +555,6 @@ export default function App() {
                 <span className="degree-value">M={degree}</span>
               </div>
             </div>
-
-            <div className="button-row single">
-              <button type="button" className="primary" onClick={() => setCurrentCode(randomSixDigits())}>
-                6桁コードをランダム生成
-              </button>
-            </div>
           </section>
 
           <section className="card panel">
@@ -627,7 +562,6 @@ export default function App() {
             <div className="stats">
               <Stat label="総サンプル数" value={current ? String(current.sampleSize) : "—"} className="blue" />
               <Stat label="学習 / テスト" value={current ? `${current.trainCount}/${current.testCount}` : "—"} />
-              <Stat label="ノイズ標準偏差" value={current ? current.noiseStd.toFixed(3) : "—"} className="green" />
               <Stat label="学習RMSE" value={fit ? fit.trainRmse.toFixed(3) : "—"} className="rose" />
               <Stat label="テストRMSE" value={fit ? fit.testRmse.toFixed(3) : "—"} className="rose" />
             </div>
