@@ -560,8 +560,8 @@ export default function App() {
           <section className="card panel">
             <h2>結果</h2>
             <div className="stats">
-              <Stat label="総サンプル数" value={current ? String(current.sampleSize) : "—"} className="blue" />
-              <Stat label="学習 / テスト" value={current ? `${current.trainCount}/${current.testCount}` : "—"} />
+              <Stat label="総データ数" value={current ? String(current.sampleSize) : "—"} className="blue" />
+              <Stat label="学習データ数 / テストデータ数" value={current ? `${current.trainCount}/${current.testCount}` : "—"} />
               <Stat label="学習RMSE" value={fit ? fit.trainRmse.toFixed(3) : "—"} className="rose" />
               <Stat label="テストRMSE" value={fit ? fit.testRmse.toFixed(3) : "—"} className="rose" />
             </div>
